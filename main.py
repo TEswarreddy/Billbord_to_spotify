@@ -16,6 +16,7 @@ sp = spotipy.Spotify(
     )
 )
 user_id = sp.current_user()["id"]
+print(f"user ID: {user_id} ")
 
 
 
@@ -29,5 +30,24 @@ soup = BeautifulSoup(web_page,"html.parser")
 song_names_title = soup.select("li ul li h3")
 song_names = [song.getText().strip() for song in song_names_title]
 
+#for song in song_names:
+#    print(song)
+
+song_uris = []
+year = date.split("-")[0]
 for song in song_names:
-    print(song)
+    result = sp.search(q=f"track:{song} year:{year}", type="track")
+    #print(result)
+    try:
+        uri = result["tracks"]["items"][0]["uri"]
+        song_uris.append(uri)
+    except IndexError:
+        print(f"{song} doesn't exist in Spotify. Skipped.")
+
+#for i in range(len(song_uris)):
+#    print(f"{song_names[i]} : {song_uris[i]}")
+
+playlist = sp.user_playlist_create(user=user_id, name=f"{date} Billboard 100", public=False)
+#print(playlist)
+
+sp.playlist_add_items(playlist_id=playlist["id"], items=song_uris)
